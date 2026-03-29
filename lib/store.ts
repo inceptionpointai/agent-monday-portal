@@ -1,4 +1,6 @@
 import { kv } from '@vercel/kv';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export type ContentType = 
   | 'tiktok' 
@@ -33,6 +35,23 @@ const CONTENT_KEY = 'content:items';
 
 // Fallback for when KV isn't configured
 let memoryFallback: ContentItem[] = [];
+let seeded = false;
+
+function seedFromFile() {
+  if (seeded) return;
+  try {
+    const filePath = path.join(process.cwd(), 'data', 'content.json');
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(raw);
+    if (data.items && data.items.length > 0 && memoryFallback.length === 0) {
+      memoryFallback = data.items;
+      console.log('[Store] Seeded', data.items.length, 'items from content.json');
+    }
+  } catch (e) {
+    console.log('[Store] No seed file or error:', e);
+  }
+  seeded = true;
+}
 
 async function isKVConfigured(): Promise<boolean> {
   return !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
@@ -40,7 +59,7 @@ async function isKVConfigured(): Promise<boolean> {
 
 export async function getAllContent(): Promise<ContentItem[]> {
   if (!(await isKVConfigured())) {
-    console.log('[Store] KV not configured, using memory fallback');
+    seedFromFile();
     return memoryFallback;
   }
   
