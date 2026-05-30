@@ -8,10 +8,10 @@ if (!API_KEY) {
   console.warn('[YouTube Analytics] YOUTUBE_API_KEY not configured');
 }
 
-// Agent Monday's YouTube channel (placeholder — to be configured)
+// Nigel's YouTube channel — DIY HOME & GARDEN
 export const MONDAY_YOUTUBE_CHANNEL = {
-  id: '',
-  name: 'Agent Monday',
+  id: 'UCcXcEDIls_yg_B48rtXGmDg',
+  name: 'DIY HOME & GARDEN',
 };
 
 export interface YouTubeChannelStats {

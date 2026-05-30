@@ -27,6 +27,39 @@ interface YouTubeVideo {
   view_count?: number;
 }
 
+interface InstagramAccount {
+  handle: string;
+  name: string;
+  role: string;
+  avatar_emoji: string;
+  avatar_url?: string;
+  followers: number | null;
+  views_28d: number | null;
+  reach_28d: number | null;
+  interactions_28d?: number | null;
+  is_main?: boolean;
+}
+
+interface InstagramPerformance {
+  views: { value: number; change_pct: number };
+  reach: { value: number; change_pct: number };
+  interactions: { value: number; change_pct: number };
+  from_followers: { value: number; change_pct: number };
+  period: string;
+}
+
+interface InstagramData {
+  data_source: string;
+  last_updated: string;
+  total_accounts: number;
+  total_followers: number;
+  total_views_28d: number;
+  total_reach_28d: number;
+  accounts: InstagramAccount[];
+  main_account_performance: InstagramPerformance | null;
+  api_connected: boolean;
+}
+
 interface AnalyticsData {
   spreaker: {
     total_downloads: number;
@@ -38,13 +71,16 @@ interface AnalyticsData {
     stats: YouTubeStats | null;
     videos: YouTubeVideo[];
   };
+  instagram: InstagramData;
   suggestions: string[];
 }
+
+type TabId = 'spreaker' | 'youtube' | 'instagram' | 'suggestions';
 
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'spreaker' | 'youtube' | 'suggestions'>('spreaker');
+  const [activeTab, setActiveTab] = useState<TabId>('spreaker');
 
   useEffect(() => {
     fetchAnalytics();
@@ -75,6 +111,10 @@ export default function AnalyticsPage() {
     );
   }
 
+  const totalReach = (data?.spreaker.total_downloads || 0) 
+    + (data?.youtube?.stats?.total_views || 0)
+    + (data?.instagram?.total_views_28d || 0);
+
   return (
     <div className="min-h-screen bg-[#0d0d1a]">
       {/* Header */}
@@ -83,12 +123,13 @@ export default function AnalyticsPage() {
           <div className="flex items-center justify-between">
             <div>
               <Link href="/" className="text-gray-400 hover:text-[#d4a037] text-sm">← Back to Portal</Link>
-              <h1 className="text-2xl font-bold mt-1 text-[#d4a037]">🕵️ Agent Monday Analytics Dashboard</h1>
+              <h1 className="text-2xl font-bold mt-1 text-[#d4a037]">🌱 Nigel Analytics Dashboard</h1>
+              <p className="text-gray-500 text-sm mt-0.5">IPAI Content Performance · Podcasts · YouTube · Instagram</p>
             </div>
             {data && (
               <div className="text-right">
-                <div className="text-3xl font-bold text-[#d4a037]">{(data.spreaker.total_downloads + (data.youtube?.stats?.total_views || 0)).toLocaleString()}</div>
-                <div className="text-gray-400 text-sm">Total Reach (Downloads + Views)</div>
+                <div className="text-3xl font-bold text-[#d4a037]">{totalReach.toLocaleString()}</div>
+                <div className="text-gray-400 text-sm">Total Reach</div>
               </div>
             )}
           </div>
@@ -98,16 +139,17 @@ export default function AnalyticsPage() {
       {/* Tabs */}
       <div className="bg-[#1a1a2e] border-b border-[#2a2a3e]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-8">
-            {[
-              { id: 'spreaker', label: '🔊 Spreaker Podcasts', count: data?.spreaker.shows.length },
-              { id: 'youtube', label: '📺 YouTube', count: data?.youtube?.stats?.video_count },
-              { id: 'suggestions', label: '💡 New Show Ideas', count: data?.suggestions?.length },
-            ].map((tab) => (
+          <div className="flex gap-8 overflow-x-auto">
+            {([
+              { id: 'spreaker' as TabId, label: '🔊 Spreaker Podcasts', count: data?.spreaker.shows.length },
+              { id: 'youtube' as TabId, label: '📺 YouTube', count: data?.youtube?.stats?.video_count },
+              { id: 'instagram' as TabId, label: '📸 Instagram', count: data?.instagram?.total_accounts },
+              { id: 'suggestions' as TabId, label: '💡 Show Ideas', count: data?.suggestions?.length },
+            ]).map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-[#d4a037] text-[#d4a037]'
                     : 'border-transparent text-gray-500 hover:text-gray-300'
@@ -127,6 +169,7 @@ export default function AnalyticsPage() {
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* ========== SPREAKER TAB ========== */}
         {activeTab === 'spreaker' && data && (
           <div className="space-y-6">
             <div className="grid grid-cols-3 gap-4">
@@ -196,6 +239,7 @@ export default function AnalyticsPage() {
           </div>
         )}
 
+        {/* ========== YOUTUBE TAB ========== */}
         {activeTab === 'youtube' && data && (
           <div className="space-y-6">
             {data.youtube?.stats ? (
@@ -217,7 +261,7 @@ export default function AnalyticsPage() {
 
                 <div className="bg-[#1a1a2e] rounded-xl shadow-lg p-6 border border-[#2a2a3e]">
                   <h2 className="text-lg font-semibold text-gray-200 mb-2">📺 {data.youtube.stats.channel_name}</h2>
-                  <p className="text-gray-500">Agent Monday&apos;s YouTube presence for true crime and legal content</p>
+                  <p className="text-gray-500">Nigel&apos;s DIY Home &amp; Garden YouTube channel — tips, tutorials, and seasonal guides</p>
                 </div>
 
                 {data.youtube.videos.length > 0 && (
@@ -248,23 +292,158 @@ export default function AnalyticsPage() {
               <div className="bg-[#1a1a2e] rounded-xl shadow-lg p-12 text-center border border-[#2a2a3e]">
                 <div className="text-4xl mb-4">📺</div>
                 <h3 className="text-lg font-medium text-gray-200">YouTube data unavailable</h3>
-                <p className="text-gray-500 mt-1">Could not fetch YouTube statistics</p>
+                <p className="text-gray-500 mt-1">Could not fetch YouTube statistics. The YOUTUBE_API_KEY environment variable may not be set.</p>
               </div>
             )}
           </div>
         )}
 
+        {/* ========== INSTAGRAM TAB ========== */}
+        {activeTab === 'instagram' && data && (
+          <div className="space-y-6">
+            {/* Data source banner */}
+            {data.instagram && !data.instagram.api_connected && (
+              <div className="bg-[#2a2a3e] rounded-lg p-3 flex items-center gap-3 border border-[#d4a037]/20">
+                <span className="text-[#d4a037]">ℹ️</span>
+                <div className="text-sm text-gray-400">
+                  <span className="text-gray-300 font-medium">Static data</span> — sourced from Meta Business Suite export.
+                  Connect the Instagram Graph API for live updates.
+                </div>
+              </div>
+            )}
+
+            {/* Summary stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-[#1a1a2e] rounded-xl shadow-lg p-6 text-center border border-[#2a2a3e]">
+                <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888]">
+                  {data.instagram?.total_accounts || 0}
+                </div>
+                <div className="text-gray-500 mt-1">Accounts</div>
+              </div>
+              <div className="bg-[#1a1a2e] rounded-xl shadow-lg p-6 text-center border border-[#2a2a3e]">
+                <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888]">
+                  {data.instagram?.total_followers || 0}
+                </div>
+                <div className="text-gray-500 mt-1">Total Followers</div>
+              </div>
+              <div className="bg-[#1a1a2e] rounded-xl shadow-lg p-6 text-center border border-[#2a2a3e]">
+                <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888]">
+                  {data.instagram?.total_views_28d || 0}
+                </div>
+                <div className="text-gray-500 mt-1">28d Views</div>
+              </div>
+              <div className="bg-[#1a1a2e] rounded-xl shadow-lg p-6 text-center border border-[#2a2a3e]">
+                <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888]">
+                  {data.instagram?.total_reach_28d || 0}
+                </div>
+                <div className="text-gray-500 mt-1">28d Reach</div>
+              </div>
+            </div>
+
+            {/* Performance metrics for main account */}
+            {data.instagram?.main_account_performance && (
+              <div className="bg-[#1a1a2e] rounded-xl shadow-lg border border-[#2a2a3e] overflow-hidden">
+                <div className="px-6 py-4 border-b border-[#2a2a3e]">
+                  <h2 className="text-lg font-semibold text-gray-200">📊 @inceptionpointai Performance</h2>
+                  <p className="text-xs text-gray-500 mt-1">{data.instagram.main_account_performance.period}</p>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-[#2a2a3e]">
+                  {[
+                    { label: 'Views', ...data.instagram.main_account_performance.views },
+                    { label: 'Reach', ...data.instagram.main_account_performance.reach },
+                    { label: 'Interactions', ...data.instagram.main_account_performance.interactions },
+                    { label: 'From Followers', ...data.instagram.main_account_performance.from_followers },
+                  ].map((metric) => (
+                    <div key={metric.label} className="p-6 text-center">
+                      <div className="text-2xl font-bold text-gray-200">{metric.value}</div>
+                      <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">{metric.label}</div>
+                      <div className={`text-sm mt-2 font-medium ${metric.change_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {metric.change_pct >= 0 ? '↑' : '↓'} {Math.abs(metric.change_pct)}%
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Account cards */}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-200 mb-4">🤖 IPAI Instagram Accounts</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {data.instagram?.accounts.map((account) => (
+                  <div
+                    key={account.handle}
+                    className={`bg-[#1a1a2e] rounded-xl shadow-lg p-5 border transition-colors ${
+                      account.is_main
+                        ? 'border-[#dc2743]/30 hover:border-[#dc2743]/50'
+                        : account.handle === '@nigelthistledown'
+                        ? 'border-green-600/30 hover:border-green-600/50'
+                        : 'border-[#2a2a3e] hover:border-[#2a2a3e]/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 rounded-full bg-[#2a2a3e] flex items-center justify-center text-2xl overflow-hidden border-2 border-[#dc2743]/40">
+                        {account.avatar_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={account.avatar_url} alt={account.name} className="w-full h-full object-cover" />
+                        ) : (
+                          account.avatar_emoji
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-200 text-sm">{account.handle}</div>
+                        <div className="text-xs text-gray-500">{account.role}</div>
+                      </div>
+                      {account.handle === '@nigelthistledown' && (
+                        <span className="ml-auto px-2 py-0.5 bg-green-900/40 text-green-400 text-xs rounded-full font-medium">Nigel</span>
+                      )}
+                      {account.is_main && (
+                        <span className="ml-auto px-2 py-0.5 bg-[#dc2743]/20 text-[#dc2743] text-xs rounded-full font-medium">Main</span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div>
+                        <div className="text-lg font-bold text-gray-200">{account.followers ?? '—'}</div>
+                        <div className="text-[10px] text-gray-500 uppercase">Followers</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-gray-200">{account.views_28d ?? '—'}</div>
+                        <div className="text-[10px] text-gray-500 uppercase">Views</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-gray-200">{account.reach_28d ?? '—'}</div>
+                        <div className="text-[10px] text-gray-500 uppercase">Reach</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Note about API */}
+            <div className="bg-[#1a1a2e] rounded-xl p-6 border border-[#2a2a3e]">
+              <h3 className="text-sm font-semibold text-gray-300 mb-2">📌 Data Notes</h3>
+              <ul className="text-sm text-gray-500 space-y-1">
+                <li>• Full data for personality accounts requires Meta Graph API setup per account</li>
+                <li>• @inceptionpointai data from Meta Business Suite (last updated: {data.instagram?.last_updated ? new Date(data.instagram.last_updated).toLocaleDateString() : 'unknown'})</li>
+                <li>• Set <code className="text-gray-400 bg-[#0d0d1a] px-1 rounded">INSTAGRAM_ACCESS_TOKEN</code> and <code className="text-gray-400 bg-[#0d0d1a] px-1 rounded">INSTAGRAM_BUSINESS_ACCOUNT_ID</code> env vars to enable live API</li>
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {/* ========== SUGGESTIONS TAB ========== */}
         {activeTab === 'suggestions' && data && (
           <div className="space-y-6">
             <div className="bg-[#1a1a2e] rounded-xl shadow-lg p-6 border border-[#2a2a3e]">
               <h2 className="text-lg font-semibold text-gray-200 mb-4">💡 New Show Ideas Based on Performance Data</h2>
               <p className="text-gray-500 mb-6">
-                Show concepts generated from analyzing performance patterns, current events, and portfolio gaps.
+                Show concepts generated from analyzing performance patterns, audience interests, and content gaps.
               </p>
               <div className="space-y-4">
                 {data.suggestions?.map((suggestion, idx) => (
                   <div key={idx} className="flex items-start gap-4 p-4 bg-gradient-to-r from-[#d4a037]/10 to-transparent rounded-lg border border-[#d4a037]/20">
-                    <div className="w-8 h-8 rounded-full bg-[#d4a037] text-[#1a1a2e] flex items-center justify-center font-bold text-sm">
+                    <div className="w-8 h-8 rounded-full bg-[#d4a037] text-[#1a1a2e] flex items-center justify-center font-bold text-sm shrink-0">
                       {idx + 1}
                     </div>
                     <div className="flex-1">

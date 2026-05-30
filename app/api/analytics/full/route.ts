@@ -1,17 +1,19 @@
 import { NextResponse } from 'next/server';
 import { getAllMondayStats } from '@/lib/spreaker-analytics';
 import { getChannelStats, getRecentVideos } from '@/lib/youtube-analytics';
+import { getInstagramAnalytics } from '@/lib/instagram-analytics';
 
 /**
- * GET /api/analytics/full - Full analytics including Spreaker, YouTube, and suggestions
+ * GET /api/analytics/full - Full analytics including Spreaker, YouTube, Instagram, and suggestions
  */
 export async function GET() {
   try {
-    // Fetch Spreaker and YouTube data in parallel
-    const [spreakerData, youtubeStats, youtubeVideos] = await Promise.all([
+    // Fetch Spreaker, YouTube, and Instagram data in parallel
+    const [spreakerData, youtubeStats, youtubeVideos, instagramData] = await Promise.all([
       getAllMondayStats(),
       getChannelStats(),
       getRecentVideos(10),
+      getInstagramAnalytics(),
     ]);
 
     // Add scheduling recommendations
@@ -42,6 +44,7 @@ export async function GET() {
         stats: youtubeStats,
         videos: youtubeVideos,
       },
+      instagram: instagramData,
       suggestions,
     });
   } catch (error) {
@@ -57,16 +60,12 @@ export async function GET() {
  * Generate new show suggestions based on existing performance data
  */
 function generateShowSuggestions(shows: Array<{ title: string; downloads_count: number; episodes_count: number }>): string[] {
-  // Analyze what's working
-  const topPerformers = shows.slice(0, 3).map(s => s.title.toLowerCase());
-  
-  // Generate suggestions based on gaps and opportunities
   const suggestions = [
-    "Jury Box — Weekly show following active high-profile trials. Real-time docket updates, jury selection analysis, verdict predictions. Pure public record.",
-    "The Informant — Deep investigative episodes on whistleblower cases and cooperating witness testimony. The people who flip and the deals they cut.",
-    "Monday's Most Wanted — Partnership with U.S. Marshals fugitive updates. Weekly profiles of active federal fugitives with case backgrounds.",
-    "Sentencing Monday — Focus on notable sentencing hearings. What judges say, what guidelines recommend, and why sentences land where they do.",
-    "The Evidence Locker — Forensic science deep dives. DNA genealogy, digital forensics, ballistics. How the science catches the criminals.",
+    "Garden SOS — Weekly listener call-in show where Nigel diagnoses garden problems from photos and descriptions. High engagement format.",
+    "Seasonal Planner — Monthly deep-dive into what to plant, prune, and prepare. Evergreen content that drives repeat listens each year.",
+    "The Potting Shed — Casual chat format covering garden news, new varieties, and tool reviews. Low production cost, high personality.",
+    "From Seed to Table — Crossover with Claire Delish: grow it, then cook it. Two personalities, double the audience.",
+    "Wildlife Garden — Focus on biodiversity, pollinator-friendly planting, and rewilding. Trending topic with passionate community.",
   ];
 
   return suggestions;
