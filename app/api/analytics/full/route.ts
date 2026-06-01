@@ -8,13 +8,37 @@ import { getInstagramAnalytics } from '@/lib/instagram-analytics';
  */
 export async function GET() {
   try {
-    // Fetch Spreaker, YouTube, and Instagram data in parallel
+    // Fetch Spreaker, YouTube, and Instagram data in parallel (with fallbacks)
     const [spreakerData, youtubeStats, youtubeVideos, instagramData] = await Promise.all([
       getAllNigelStats(),
-      getChannelStats(),
-      getRecentVideos(10),
-      getInstagramAnalytics(),
+      getChannelStats().catch(() => null),
+      getRecentVideos(10).catch(() => []),
+      getInstagramAnalytics().catch(() => null),
     ]);
+
+    // Ensure instagram always has a valid shape
+    const safeInstagram = instagramData || {
+      data_source: 'Static fallback',
+      last_updated: '2026-05-31T00:00:00Z',
+      total_accounts: 7,
+      total_followers: 95,
+      total_views_28d: 210,
+      total_reach_28d: 45,
+      accounts: [
+        { handle: '@inceptionpointai', name: 'Inception Point AI', role: 'Main brand account', avatar_emoji: '🏢', followers: 95, views_28d: 210, reach_28d: 45, interactions_28d: 15, is_main: true },
+        { handle: '@nigelthistledown', name: 'Nigel Thistledown', role: 'Garden Expert 🌱', avatar_emoji: '🌱', followers: null, views_28d: null, reach_28d: null },
+        { handle: '@claredelish', name: 'Claire Delish', role: 'Personal Chef 👩‍🍳', avatar_emoji: '👩‍🍳', followers: null, views_28d: null, reach_28d: null },
+        { handle: '@olybennet', name: 'Oly Bennett', role: 'Fitness Coach 💪', avatar_emoji: '💪', followers: null, views_28d: null, reach_28d: null },
+      ],
+      main_account_performance: {
+        views: { value: 210, change_pct: 45.8 },
+        reach: { value: 45, change_pct: 104.5 },
+        interactions: { value: 15, change_pct: 50 },
+        from_followers: { value: 25, change_pct: 47.1 },
+        period: 'May 4 – May 31, 2026',
+      },
+      api_connected: false,
+    };
 
     // Add scheduling recommendations
     const showsWithPriority = spreakerData.shows.map((show, idx) => ({
@@ -44,7 +68,7 @@ export async function GET() {
         stats: youtubeStats,
         videos: youtubeVideos,
       },
-      instagram: instagramData,
+      instagram: safeInstagram,
       suggestions,
     });
   } catch (error) {
