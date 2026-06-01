@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllMondayStats } from '@/lib/spreaker-analytics';
+import { getAllNigelStats } from '@/lib/spreaker-analytics';
 import { getChannelStats, getRecentVideos } from '@/lib/youtube-analytics';
 import { getInstagramAnalytics } from '@/lib/instagram-analytics';
 
@@ -10,7 +10,7 @@ export async function GET() {
   try {
     // Fetch Spreaker, YouTube, and Instagram data in parallel
     const [spreakerData, youtubeStats, youtubeVideos, instagramData] = await Promise.all([
-      getAllMondayStats(),
+      getAllNigelStats(),
       getChannelStats(),
       getRecentVideos(10),
       getInstagramAnalytics(),

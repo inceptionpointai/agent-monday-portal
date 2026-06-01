@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllMondayStats, MONDAY_SHOW_IDS } from '@/lib/spreaker-analytics';
+import { getAllNigelStats, NIGEL_SHOW_IDS } from '@/lib/spreaker-analytics';
 
 /**
  * GET /api/analytics - Get Agent Monday show analytics from Spreaker API
@@ -7,7 +7,7 @@ import { getAllMondayStats, MONDAY_SHOW_IDS } from '@/lib/spreaker-analytics';
  */
 export async function GET() {
   try {
-    const data = await getAllMondayStats();
+    const data = await getAllNigelStats();
     
     // Add scheduling recommendations based on performance
     const showsWithPriority = data.shows.map((show, idx) => ({
@@ -23,7 +23,7 @@ export async function GET() {
       data_source: "Spreaker API",
       generated_at: new Date().toISOString(),
       period: "all-time",
-      monday_show_ids: MONDAY_SHOW_IDS,
+      monday_show_ids: NIGEL_SHOW_IDS,
       analytics: {
         total_downloads: data.total_downloads,
         total_plays: data.total_plays,

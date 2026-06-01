@@ -13,8 +13,8 @@ function getApiKey(): string {
   return key;
 }
 
-// Agent Monday's target shows (placeholder IDs — will be updated when shows are created)
-export const MONDAY_SHOW_IDS: number[] = [];
+// Nigel's Spreaker shows
+export const NIGEL_SHOW_IDS: number[] = [6991515, 6991516];
 
 export interface ShowStats {
   show_id: number;
@@ -105,16 +105,16 @@ export async function getShowEpisodes(showId: number, limit: number = 10): Promi
 }
 
 /**
- * Get analytics for all Agent Monday shows
+ * Get analytics for all Nigel shows
  */
-export async function getAllMondayStats(): Promise<{
+export async function getAllNigelStats(): Promise<{
   shows: ShowStats[];
   total_plays: number;
   total_downloads: number;
   total_episodes: number;
   top_episodes: EpisodeStats[];
 }> {
-  if (MONDAY_SHOW_IDS.length === 0) {
+  if (NIGEL_SHOW_IDS.length === 0) {
     return {
       shows: [],
       total_plays: 0,
@@ -125,7 +125,7 @@ export async function getAllMondayStats(): Promise<{
   }
 
   // Fetch all show stats in parallel
-  const showStatsPromises = MONDAY_SHOW_IDS.map(id => getShowStats(id));
+  const showStatsPromises = NIGEL_SHOW_IDS.map(id => getShowStats(id));
   const showStats = await Promise.all(showStatsPromises);
   
   // Filter out nulls and sort by downloads
