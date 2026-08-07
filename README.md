@@ -35,10 +35,21 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Environment Variables
 
+Copy `.env.example` to `.env.local` for local work. In production these live in
+Vercel → Project → Settings → Environment Variables.
+
 - `KV_REST_API_URL` — Vercel KV store URL
 - `KV_REST_API_TOKEN` — Vercel KV auth token
 - `SPREAKER_API_KEY` — Spreaker API key for publishing
 - `YOUTUBE_API_KEY` — YouTube Data API key
+- `INSTAGRAM_ACCESS_TOKEN` / `INSTAGRAM_BUSINESS_ACCOUNT_ID` — optional; the
+  analytics page falls back to static data without them
+
+**This repository is public.** Never put a secret value in `next.config.js`,
+in source, or in a committed `.env` file. Next.js inlines anything in the
+config's `env` block into the build output at compile time; the moment a
+client component reads such a value, it is published to every browser that
+loads the app.
 
 ## Tech Stack
 
